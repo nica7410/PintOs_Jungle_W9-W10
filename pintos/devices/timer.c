@@ -7,6 +7,7 @@
 #include "threads/io.h"
 #include "threads/synch.h"
 #include "threads/thread.h"
+//#include "threads/thread.c"
 
 /* See [8254] for hardware details of the 8254 timer chip. */
 
@@ -76,6 +77,8 @@ int64_t
 timer_ticks (void) {
 	enum intr_level old_level = intr_disable ();
 	int64_t t = ticks;
+	struct thread t;
+	
 	intr_set_level (old_level);
 	barrier ();
 	return t;
@@ -92,10 +95,12 @@ timer_elapsed (int64_t then) {
 void
 timer_sleep (int64_t ticks) {
 	int64_t start = timer_ticks ();
-
+	struct thread* sleepedThread = thread_sleep();
+	
 	ASSERT (intr_get_level () == INTR_ON);
-	while (timer_elapsed (start) < ticks)
-		thread_yield ();
+	while (timer_elapsed (start) < ticks){}
+
+	if(sleepedThread != NULL) thread_wakeup(sleepedThread);
 }
 
 /* Suspends execution for approximately MS milliseconds. */

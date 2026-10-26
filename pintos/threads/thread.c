@@ -28,6 +28,8 @@
    that are ready to run but not actually running. */
 static struct list ready_list;
 
+static struct list sleep_list;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -109,6 +111,8 @@ thread_init (void) {
 	lock_init (&tid_lock);
 	list_init (&ready_list);
 	list_init (&destruction_req);
+	list_init(&sleep_list);
+	
 
 	/* Set up a thread structure for the running thread. */
 	initial_thread = running_thread ();
@@ -308,6 +312,41 @@ thread_yield (void) {
 	intr_set_level (old_level);
 }
 
+struct thread* thread_sleep(void)
+{
+	struct list_elem f = thread_current()->elem;
+	// list_entry (list_pop_front (&ready_list), struct thread, elem)
+	struct list_elem *e = list_begin (&sleep_list);
+	//if(&sleep_list == NULL) return;
+	
+	bool isInList = false;
+	// for (e = list_begin (&sleep_list);  e = list_next (e))
+	while(e != list_end (&sleep_list)){
+		if(e == &f){
+			isInList = true;
+			break;
+		}
+		e = list_next (e);
+	}
+	if (!isInList) list_push_back(&sleep_list, &f);
+
+	return &f;
+}
+void thread_wakeup(struct thread *t)
+{
+	struct list_elem *e = list_begin (&sleep_list);
+	//if(&sleep_list == NULL) return;
+	
+	// for (e = list_begin (&sleep_list);  e = list_next (e))
+	while(e != list_end (&sleep_list)){
+		if(e == &t){
+			list_remove(&t->elem);
+			
+			break;
+		}
+		e = list_next (e);
+	}
+}
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void
 thread_set_priority (int new_priority) {
