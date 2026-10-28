@@ -1,6 +1,6 @@
 #include "list.h"
-#include "../debug.h"
-
+#include <debug.h>
+#include "threads/thread.h"
 /* Our doubly linked lists have two header elements: the "head"
    just before the first element and the "tail" just after the
    last element.  The `prev' link of the front header is null, as
@@ -429,7 +429,15 @@ list_insert_ordered (struct list *list, struct list_elem *elem,
 			break;
 	return list_insert (e, elem);
 }
-
+bool
+priority_less (const struct list_elem *a_, const struct list_elem *b_,
+            void *aux UNUSED) 
+{
+  const struct thread *a = list_entry (a_, struct thread, elem);
+  const struct thread *b = list_entry (b_, struct thread, elem);
+  
+  return a->priority > b->priority;
+}
 /* Iterates through LIST and removes all but the first in each
    set of adjacent elements that are equal according to LESS
    given auxiliary data AUX.  If DUPLICATES is non-null, then the
